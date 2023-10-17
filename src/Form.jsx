@@ -1,76 +1,39 @@
 import _ from "./Form.module.css";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 export const Form = () => {
-  const [email, setEmail] = useState("");
-  const [emailError, setEmailError] = useState(false);
-  const [emailDirty, setEmailDirty] = useState(false);
-  const [password, setPassword] = useState("");
-  const [passwordError, setPasswordError] = useState(false);
-  const [passwordDirty, setPasswordDirty] = useState(false);
-  const [checkErrorForm, setCheckErrorForm] = useState(false);
-  const [save, setSave] = useState(false);
-  const [isPending, setIsPending] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
 
-  const validEmail = (value) => {
-    setEmailError(/^.+@.+\..+$/.test(value));
-  };
-
-  const handleEmail = ({ target }) => {
-    setEmail(target.value);
-    validEmail(target.value);
-  };
-  const validPassword = (value) => {
-    setPasswordError(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^\w\s]).{6,}/.test(value)
-    );
-  };
-
-  const handlePassword = ({ target }) => {
-    setPassword(target.value);
-    validPassword(target.value);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (!emailError || !passwordError) {
-      setCheckErrorForm(true);
-      return;
-    }
-    setIsPending(true);
-    console.log({
-      email,
-      password,
-      save,
-    });
-  };
-
-  const handleSave = ({ target }) => {
-    setSave(target.checked);
+  const onSubmit = (data) => {
+    console.log(data);
   };
 
   return (
-    <form className={_.form} onSubmit={handleSubmit}>
+    <form className={_.form} onSubmit={handleSubmit(onSubmit)}>
       <div className={_.wrap}>
         <label className={_.label} htmlFor="email">
           Email
         </label>
         <input
+          {...register("email", {
+            required: {
+              value: true,
+              message: "Поле не должно быть пустым",
+            },
+            pattern: {
+              value: /^.+@.+\..+$/,
+              message: "Некорректный email",
+            },
+          })}
           type="text"
           className={_.input}
           id="email"
-          name="email"
-          value={email}
-          onChange={handleEmail}
-          disabled={isPending}
-          onBlur={() => {
-            setEmailDirty(true);
-          }}
         />
-        {!emailError && emailDirty && (
-          <p className={_.error}>Сообщение об ошибке</p>
-        )}
+        {errors.email && <p className={_.error}>{errors.email.message}</p>}
       </div>
 
       <div className={_.wrap}>
@@ -78,47 +41,41 @@ export const Form = () => {
           Пароль
         </label>
         <input
+          {...register("password", {
+            required: {
+              value: true,
+              message: "Поле не должно быть пустым",
+            },
+            pattern: {
+              value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^\w\s]).{6,}/,
+              message: "Недопустимый пароль",
+            },
+          })}
           type="password"
           className={_.input}
           id="password"
-          name="password"
-          value={password}
-          onChange={handlePassword}
-          disabled={isPending}
-          onBlur={() => {
-            setPasswordDirty(true);
-          }}
         />
-
-        {!passwordError && passwordDirty && (
-          <p className={_.error}>Сообщение об ошибке</p>
+        {errors.password && (
+          <p className={_.error}>{errors.password.message}</p>
         )}
       </div>
 
       <div className={_.wrapCheckbox}>
         <input
+          {...register("save")}
           type="checkbox"
           className={_.checkbox}
           id="save"
           name="save"
-          onChange={handleSave}
-          checked={save}
-          disabled={isPending}
         />
         <label className={_.labelCheckbox} htmlFor="save">
           Запомнить пароль
         </label>
       </div>
-      {isPending ? (
-        <p className={_.pending}>Отправка</p>
-      ) : (
-        <button className={_.submit} type="submit">
-          Войти
-        </button>
-      )}
-      {checkErrorForm && (!passwordError || !emailError) && (
-        <p className={_.errorSubmit}>Сообщение об ошибке</p>
-      )}
+
+      <button className={_.submit} type="submit">
+        Войти
+      </button>
     </form>
   );
 };
